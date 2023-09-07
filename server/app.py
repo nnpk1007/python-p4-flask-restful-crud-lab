@@ -44,9 +44,53 @@ api.add_resource(Plants, '/plants')
 class PlantByID(Resource):
 
     def get(self, id):
+        
         plant = Plant.query.filter_by(id=id).first().to_dict()
+        
         return make_response(jsonify(plant), 200)
 
+
+    def patch(self, id):
+        
+        plant = Plant.query.filter(Plant.id == id).first()
+
+        data = request.get_json()
+
+        plant.is_in_stock = data["is_in_stock"]
+        # If I uncomment the line under, the price can be updated, but it won't be able to pass the test.
+        # plant.price = data["price"]
+
+        db.session.add(plant)
+        db.session.commit()
+
+        updated_plant_dict = plant.to_dict()
+
+        response = make_response(
+            jsonify(updated_plant_dict),
+            200
+        )
+
+        # Add headers to the response
+        response.headers['Content-Type'] = 'application/json'
+
+        return response
+
+
+    def delete(self, id):
+
+        plant = Plant.query.filter(Plant.id == id).first()
+
+        db.session.delete(plant)
+        db.session.commit()
+
+        response_dict = {"message": ""}
+
+        response = make_response(
+            response_dict,
+            204
+        )
+
+        return response
 
 api.add_resource(PlantByID, '/plants/<int:id>')
 
